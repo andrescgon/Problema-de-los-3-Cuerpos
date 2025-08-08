@@ -1,0 +1,104 @@
+
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\title{Simulación Numérica del Problema de Tres Cuerpos: Sol, Tierra y Venus}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section*{Resumen}
+Se implementó una simulación numérica del problema de tres cuerpos usando Python y Matplotlib para modelar las interacciones gravitacionales entre el Sol, la Tierra y Venus. El código resuelve las ecuaciones de movimiento mediante un integrador explícito (actualización de velocidades y luego posiciones — Euler semi-implícito), registra trayectorias y genera una animación interactiva con control de velocidad en tiempo real. Los resultados muestran órbitas estables y la relación esperada entre distancias orbitales y periodos (Venus completa más órbitas que la Tierra). Se discuten limitaciones numéricas y mejoras propuestas (RK4, suavizado, control de energía).
+
+\section{Introducción}
+El problema de los tres cuerpos es un problema clásico de la mecánica celeste: dado tres masas que interactúan únicamente por gravedad newtoniana, predecir sus trayectorias. A diferencia del caso de dos cuerpos, no existe una solución analítica general y las soluciones pueden presentar comportamiento caótico. El objetivo de esta práctica fue implementar una simulación numérica simple que permita:
+\begin{itemize}
+    \item Visualizar las trayectorias en 2D.
+    \item Permitir control en tiempo real de la velocidad de simulación.
+    \item Analizar la concordancia con predicciones teóricas básicas (leyes de Kepler y comportamiento orbital).
+\end{itemize}
+
+\section{Metodología}
+\subsection{Ecuaciones físicas}
+Se utiliza la ley de gravitación universal de Newton y la segunda ley de Newton. Para cada cuerpo $i$, la aceleración viene dada por:
+\begin{equation}
+    \vec{a}_i = G \sum_{j \neq i} \frac{m_j (\vec{r}_j - \vec{r}_i)}{\|\vec{r}_j - \vec{r}_i\|^3}
+\end{equation}
+donde $G = 6.67430 \times 10^{-11} \, \mathrm{m^3\,kg^{-1}\,s^{-2}}$.
+
+\subsection{Integrador numérico}
+En cada paso de tiempo $\Delta t$ (variable según \texttt{velocidad\_factor}) se realiza:
+\begin{enumerate}
+    \item Calcular aceleraciones $\vec{a}_i$ por la suma sobre todos los pares.
+    \item Actualizar velocidades: $\vec{v}_i \leftarrow \vec{v}_i + \vec{a}_i \, \Delta t$.
+    \item Actualizar posiciones: $\vec{r}_i \leftarrow \vec{r}_i + \vec{v}_i \, \Delta t$.
+\end{enumerate}
+Este esquema (actualización de velocidades antes que posiciones) es el método de Euler semi-implícito (Euler-Cromer), más estable para sistemas oscilatorios que el Euler explícito.
+
+\subsection{Condiciones iniciales}
+Se usaron valores aproximados reales:
+\begin{itemize}
+    \item Sol: $m = 1.989 \times 10^{30}$ kg, posición $(0,0)$.
+    \item Tierra: $m = 5.972 \times 10^{24}$ kg, posición $(1.496\times 10^{11}, 0)$ m, velocidad $(0, 29780)$ m/s.
+    \item Venus: $m = 4.867 \times 10^{24}$ kg, posición $(1.082\times 10^{11}, 0)$ m, velocidad $(0, 35020)$ m/s.
+\end{itemize}
+Paso de tiempo base: $\Delta t_{base} = 3600$ s (1 hora), escalable con un factor máximo de $\times 64$.
+
+\subsection{Implementación}
+\begin{itemize}
+    \item Lenguaje: Python 3.x
+    \item Librerías: \texttt{numpy}, \texttt{matplotlib}
+    \item Cálculo en tiempo real en función \texttt{update()} y almacenamiento de trayectorias.
+\end{itemize}
+
+\section{Resultados y observaciones}
+\begin{itemize}
+    \item Órbitas visibles: Tierra (azul) y Venus (naranja) describen órbitas casi circulares alrededor del Sol (amarillo).
+    \item Venus completa más órbitas que la Tierra en el mismo intervalo, en concordancia con su menor distancia al Sol.
+    \item El Sol muestra un ligero movimiento debido a la reacción gravitatoria de los planetas.
+    \item Las órbitas se mantienen estables durante la simulación.
+    \item Se observa una leve precesión en Venus debido a la interacción con la Tierra.
+\end{itemize}
+
+\section{Comparación con la teoría}
+\begin{itemize}
+    \item \textbf{Leyes de Kepler}: $T^2 \propto a^3$ se cumple cualitativamente.
+    \item \textbf{Velocidad orbital}: consistente con $v \approx \sqrt{\frac{GM_{\odot}}{r}}$.
+    \item \textbf{Conservación de momento}: el movimiento del Sol refleja la conservación del centro de masas.
+\end{itemize}
+
+\section{Limitaciones y desafíos}
+\begin{itemize}
+    \item El método de Euler-Cromer acumula error energético a largo plazo.
+    \item $\Delta t$ grande introduce errores; pequeño aumenta el coste computacional.
+    \item No se modelan colisiones ni se incluye \emph{softening}.
+\end{itemize}
+
+\section{Recomendaciones y mejoras}
+\begin{itemize}
+    \item Usar integrador RK4 o métodos \emph{symplectic}.
+    \item Implementar \emph{softening} para evitar singularidades.
+    \item Añadir cálculo y graficado de energía total y momento.
+    \item Extender el sistema a más planetas y validar contra datos reales.
+\end{itemize}
+
+\section{Conclusiones}
+La simulación reproduce de forma cualitativa el comportamiento esperado del sistema Sol–Tierra–Venus: órbitas estables, periodos relativos correctos y reacción del Sol al tirón gravitatorio. Es útil para enseñanza y visualización, aunque para análisis precisos se recomiendan integradores más avanzados y validaciones adicionales.
+
+\section*{Referencias}
+\begin{itemize}
+    \item Newton, I. \emph{Philosophiæ Naturalis Principia Mathematica}.
+    \item Murray C.D., Dermott S.F., \emph{Solar System Dynamics}. Cambridge Univ. Press.
+    \item Datos astronómicos de tablas públicas.
+\end{itemize}
+
+\end{document}
